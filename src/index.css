@@ -103,8 +103,17 @@ body {
   z-index: 0;
 }
 
-.tech-canvas {
+.techstack-loading {
+  height: var(--vh);
+  display: grid;
+  place-items: center;
+  color: #adacac;
+}
+
+.tech-canvas,
+.tech-canvas canvas {
   z-index: 0;
+  touch-action: pan-y;
 }
 
 /* Keep the pinned Work section (and its cards) above the canvas */
@@ -134,5 +143,30 @@ body {
 @media screen and (max-width: 900px) {
   .techstack h2 {
     font-size: 40px;
+  }
+}
+
+@media screen and (max-width: 1024px) {
+  .techstack {
+    height: clamp(500px, 78svh, 720px);
+    margin-top: 20px;
+    margin-bottom: 0;
+  }
+
+  .techstack h2 {
+    top: clamp(64px, 12svh, 110px);
+    font-size: clamp(34px, 8vw, 44px);
+  }
+
+  .techstack-hint {
+    position: absolute;
+    z-index: 1;
+    top: clamp(116px, 21svh, 165px);
+    width: 100%;
+    margin: 0;
+    color: #adacac;
+    font-size: 13px;
+    text-align: center;
+    pointer-events: none;
   }
 }

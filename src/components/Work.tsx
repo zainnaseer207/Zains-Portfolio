@@ -67,67 +67,66 @@ function clearStaleWorkPin() {
 const Work = () => {
   useGSAP(() => {
     clearStaleWorkPin();
-    let translateX = 0;
 
-    // Measured fresh on every ScrollTrigger refresh (see end / x below),
-    // so the pin distance is correct even if layout wasn't ready at mount.
-    function setTranslateX() {
-      const box = document.getElementsByClassName("work-box");
-      if (!box.length) return;
-      const rectLeft = document
-        .querySelector(".work-container")!
-        .getBoundingClientRect().left;
-      const rect = box[0].getBoundingClientRect();
-      const parentWidth = box[0].parentElement!.getBoundingClientRect().width;
-      const padding: number =
-        parseInt(window.getComputedStyle(box[0]).padding) / 2;
-      translateX = Math.max(
-        0,
-        rect.width * box.length - (rectLeft + parentWidth) + padding
-      );
-    }
+    const media = gsap.matchMedia();
+    media.add("(min-width: 1025px)", () => {
+      let translateX = 0;
 
-    setTranslateX();
+      function setTranslateX() {
+        const box = document.getElementsByClassName("work-box");
+        if (!box.length) return;
+        const rectLeft = document
+          .querySelector(".work-container")!
+          .getBoundingClientRect().left;
+        const rect = box[0].getBoundingClientRect();
+        const parentWidth = box[0].parentElement!.getBoundingClientRect().width;
+        const padding: number =
+          parseInt(window.getComputedStyle(box[0]).padding) / 2;
+        translateX = Math.max(
+          0,
+          rect.width * box.length - (rectLeft + parentWidth) + padding
+        );
+      }
 
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: ".work-section",
-        scroller: "#smooth-wrapper",
-        start: "top top",
-        end: () => {
-          setTranslateX();
-          return `+=${translateX}`;
+      setTranslateX();
+
+      const timeline = gsap.timeline({
+        scrollTrigger: {
+          trigger: ".work-section",
+          scroller: "#smooth-wrapper",
+          start: "top top",
+          end: () => {
+            setTranslateX();
+            return `+=${translateX}`;
+          },
+          scrub: true,
+          pin: true,
+          pinSpacing: true,
+          id: "work",
+          invalidateOnRefresh: true,
         },
-        scrub: true,
-        pin: true,
-        pinSpacing: true,
-        id: "work",
-        invalidateOnRefresh: true,
-      },
+      });
+
+      timeline.to(".work-flex", {
+        x: () => -translateX,
+        ease: "none",
+      });
+
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener("load", refresh);
+      const t1 = setTimeout(refresh, 500);
+      const t2 = setTimeout(refresh, 2500);
+
+      return () => {
+        window.removeEventListener("load", refresh);
+        clearTimeout(t1);
+        clearTimeout(t2);
+        timeline.kill();
+        clearStaleWorkPin();
+      };
     });
 
-    timeline.to(".work-flex", {
-      x: () => -translateX,
-      ease: "none",
-    });
-
-    // Layout (fonts, images, lazy TechStack) can settle after mount
-    const refresh = () => ScrollTrigger.refresh();
-    window.addEventListener("load", refresh);
-    const t1 = setTimeout(refresh, 500);
-    const t2 = setTimeout(refresh, 2500);
-
-    // kill(true) reverts the pin, which removes the pin-spacer. A plain
-    // kill() leaves it behind, and StrictMode's second mount (dev) then
-    // nests a second spacer inside the stale one -> page too short,
-    // Work stays pinned while TechStack scrolls through it.
-    return () => {
-      window.removeEventListener("load", refresh);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      timeline.kill();
-      clearStaleWorkPin();
-    };
+    return () => media.revert();
   }, []);
 
   return (

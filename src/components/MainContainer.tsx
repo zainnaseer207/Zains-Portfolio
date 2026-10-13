@@ -1,4 +1,11 @@
-import { lazy, PropsWithChildren, Suspense, useEffect, useState } from "react";
+import {
+  lazy,
+  PropsWithChildren,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import About from "./About";
 import Career from "./Career";
 import Contact from "./Contact";
@@ -11,6 +18,50 @@ import Work from "./Work";
 import setSplitText from "./utils/splitText";
 
 const TechStack = lazy(() => import("./TechStack"));
+
+const DeferredTechStack = () => {
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldLoad(true);
+        observer.disconnect();
+      },
+      { rootMargin: "400px 0px" }
+    );
+    observer.observe(section);
+
+    return () => observer.disconnect();
+  }, []);
+
+  if (shouldLoad) {
+    return (
+      <Suspense
+        fallback={
+          <section className="techstack techstack-loading">
+            Loading tech stack...
+          </section>
+        }
+      >
+        <TechStack />
+      </Suspense>
+    );
+  }
+
+  return (
+    <section
+      ref={sectionRef}
+      className="techstack techstack-placeholder"
+      aria-label="Interactive tech stack"
+    />
+  );
+};
 
 const MainContainer = ({ children }: PropsWithChildren) => {
   const [isDesktopView, setIsDesktopView] = useState<boolean>(
@@ -43,11 +94,7 @@ const MainContainer = ({ children }: PropsWithChildren) => {
             <WhatIDo />
             <Career />
             <Work />
-            {isDesktopView && (
-              <Suspense fallback={<div>Loading....</div>}>
-                <TechStack />
-              </Suspense>
-            )}
+            <DeferredTechStack />
             <Contact />
           </div>
         </div>

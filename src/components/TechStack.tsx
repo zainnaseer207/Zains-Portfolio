@@ -39,6 +39,7 @@ type SphereProps = {
   r?: typeof THREE.MathUtils.randFloatSpread;
   material: THREE.MeshPhysicalMaterial;
   isActive: boolean;
+  isMobile: boolean;
 };
 
 function SphereGeo({
@@ -47,6 +48,7 @@ function SphereGeo({
   r = THREE.MathUtils.randFloatSpread,
   material,
   isActive,
+  isMobile,
 }: SphereProps) {
   const api = useRef<RapierRigidBody | null>(null);
 
@@ -72,7 +74,11 @@ function SphereGeo({
       linearDamping={0.75}
       angularDamping={0.15}
       friction={0.2}
-      position={[r(20), r(20) - 25, r(20) - 10]}
+      position={
+        isMobile
+          ? [r(3.5), r(4) - 7, r(3) - 4]
+          : [r(20), r(20) - 25, r(20) - 10]
+      }
       ref={api}
       colliders={false}
     >
@@ -129,29 +135,30 @@ function Pointer({ vec = new THREE.Vector3(), isActive }: PointerProps) {
 
 const TechStack = () => {
   const [isActive, setIsActive] = useState(false);
+  const [isMobile, setIsMobile] = useState(() =>
+    window.matchMedia("(max-width: 1024px)").matches
+  );
 
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY || document.documentElement.scrollTop;
-      const work = document.getElementById("work");
-      if (!work) return;
-      const threshold = work.getBoundingClientRect().top;
-      setIsActive(scrollY > threshold);
-    };
-    document.querySelectorAll(".header a").forEach((elem) => {
-      const element = elem as HTMLAnchorElement;
-      element.addEventListener("click", () => {
-        const interval = setInterval(() => {
-          handleScroll();
-        }, 10);
-        setTimeout(() => {
-          clearInterval(interval);
-        }, 1000);
-      });
-    });
-    window.addEventListener("scroll", handleScroll);
+    const mediaQuery = window.matchMedia("(max-width: 1024px)");
+    const updateIsMobile = () => setIsMobile(mediaQuery.matches);
+
+    mediaQuery.addEventListener("change", updateIsMobile);
+    return () => mediaQuery.removeEventListener("change", updateIsMobile);
+  }, []);
+
+  useEffect(() => {
+    const section = document.querySelector(".techstack");
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsActive(entry.isIntersecting),
+      { rootMargin: "100px 0px" }
+    );
+    observer.observe(section);
+
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
     };
   }, []);
   // TechStack is lazy-loaded, so it mounts AFTER Work's pin was measured.
@@ -177,11 +184,16 @@ const TechStack = () => {
   }, []);
 
   return (
-    <div className="techstack">
-      <h2>My Tech Stack</h2>
+    <section className="techstack" aria-labelledby="techstack-title">
+      <h2 id="techstack-title">My Tech Stack</h2>
+      {isMobile && (
+        <p className="techstack-hint">Touch and drag to move the balls</p>
+      )}
 
       <Canvas
-        shadows
+        shadows={!isMobile}
+        dpr={isMobile ? 1 : [1, 2]}
+        frameloop={isActive ? "always" : "demand"}
         gl={{ alpha: true, stencil: false, depth: false, antialias: false }}
         camera={{ position: [0, 0, 20], fov: 32.5, near: 1, far: 100 }}
         onCreated={(state) => (state.gl.toneMappingExposure = 1.5)}
@@ -194,31 +206,36 @@ const TechStack = () => {
           penumbra={1}
           angle={0.2}
           color="white"
-          castShadow
+          castShadow={!isMobile}
           shadow-mapSize={[512, 512]}
         />
         <directionalLight position={[0, 5, -4]} intensity={2} />
         <Physics gravity={[0, 0, 0]}>
           <Pointer isActive={isActive} />
-          {spheres.map((props, i) => (
-            <SphereGeo
-              key={i}
-              {...props}
-              material={materials[Math.floor(Math.random() * materials.length)]}
-              isActive={isActive}
-            />
-          ))}
+          {spheres
+            .slice(0, isMobile ? 12 : spheres.length)
+            .map((props, i) => (
+              <SphereGeo
+                key={i}
+                {...props}
+                material={materials[i % materials.length]}
+                isActive={isActive}
+                isMobile={isMobile}
+              />
+            ))}
         </Physics>
         <Environment
           files="/models/char_enviorment.hdr"
           environmentIntensity={0.5}
           environmentRotation={[0, 4, 2]}
         />
-        <EffectComposer enableNormalPass={false}>
-          <N8AO color="#0f002c" aoRadius={2} intensity={1.15} />
-        </EffectComposer>
+        {!isMobile && (
+          <EffectComposer enableNormalPass={false}>
+            <N8AO color="#0f002c" aoRadius={2} intensity={1.15} />
+          </EffectComposer>
+        )}
       </Canvas>
-    </div>
+    </section>
   );
 };
 
