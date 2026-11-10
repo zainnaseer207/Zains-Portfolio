@@ -11,8 +11,8 @@ const projects = [
     num: "01",
     name: "Fine Tech School System",
     category: "School Management System",
-    tools: "Python • Django • HTML • CSS • JavaScript • SQLite",
-    desc: "Developed a web-based school management system using Django, SQLite, and JavaScript at Fine Tech Software House, implementing dynamic UI and secure authentication to streamline administrative record-keeping.",
+    tools: "Python • Django • HTML • CSS • SQLite",
+    desc: "Developed a web-based school management system using Django and SQLite at Fine Tech Software House, implementing a dynamic interface and secure authentication to streamline administrative record-keeping.",
     image: "/images/fine_tech_school.webp",
   },
   {

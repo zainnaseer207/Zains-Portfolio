@@ -20,7 +20,7 @@ If you use parts of this codebase as a learning reference, please provide proper
 
 ## ⚙️ Tech Stack
 
-- **Frontend:** HTML5, CSS3, JavaScript, React, TypeScript
+- **Frontend:** HTML5, CSS3, React, TypeScript
 - **Animations & Graphics:** GSAP, Three.js, WebGL
 - **Backend & Tools:** Python, Django, SQL
 

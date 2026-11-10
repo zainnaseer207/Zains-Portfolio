@@ -92,15 +92,13 @@ const WhatIDo = () => {
               <h4>Software Development</h4>
               <p>
                 I build practical software and web applications using Python,
-                C++, JavaScript, PHP, MySQL and Django — focused on functional
+                C++, MySQL and Django — focused on functional
                 solutions to real-world problems.
               </p>
               <h5>Skillset &amp; tools</h5>
               <div className="what-content-flex">
                 <div className="what-tags">Python</div>
                 <div className="what-tags">C++</div>
-                <div className="what-tags">JavaScript</div>
-                <div className="what-tags">PHP</div>
                 <div className="what-tags">Django</div>
                 <div className="what-tags">MySQL</div>
                 <div className="what-tags">HTML</div>
